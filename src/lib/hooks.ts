@@ -14,6 +14,7 @@ export const qk = {
   dayStatusRange: (start: string, end: string) => ['dayStatus', start, end] as const,
   rewards: ['rewards'] as const,
   redemptions: ['redemptions'] as const,
+  feedback: ['feedback'] as const,
 }
 
 // ---------- Zapytania ----------
@@ -52,6 +53,10 @@ export function useRedemptions() {
   return useQuery({ queryKey: qk.redemptions, queryFn: api.fetchRedemptions })
 }
 
+export function useFeedback() {
+  return useQuery({ queryKey: qk.feedback, queryFn: api.fetchFeedback })
+}
+
 // ---------- Mutacje ----------
 function useInvalidator() {
   const qc = useQueryClient()
@@ -71,6 +76,7 @@ function useInvalidator() {
       qc.invalidateQueries({ queryKey: qk.redemptions })
       qc.invalidateQueries({ queryKey: qk.points })
     },
+    feedback: () => qc.invalidateQueries({ queryKey: qk.feedback }),
   }
 }
 
@@ -153,6 +159,30 @@ export function useFulfillRedemption() {
   })
 }
 
+export function useCreateFeedback(authorId: UUID) {
+  const inv = useInvalidator()
+  return useMutation({
+    mutationFn: (body: string) => api.createFeedback(authorId, body),
+    onSuccess: inv.feedback,
+  })
+}
+
+export function useSetFeedbackDone() {
+  const inv = useInvalidator()
+  return useMutation({
+    mutationFn: ({ id, done }: { id: UUID; done: boolean }) => api.setFeedbackDone(id, done),
+    onSuccess: inv.feedback,
+  })
+}
+
+export function useDeleteFeedback() {
+  const inv = useInvalidator()
+  return useMutation({
+    mutationFn: (id: UUID) => api.deleteFeedback(id),
+    onSuccess: inv.feedback,
+  })
+}
+
 // ---------- Realtime ----------
 // Zmiany w bazie (też te zrobione przez partnera na innym urządzeniu)
 // odświeżają odpowiednie zapytania na żywo.
@@ -177,6 +207,9 @@ export function useRealtime() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'reward_redemptions' }, () => {
         qc.invalidateQueries({ queryKey: qk.redemptions })
         qc.invalidateQueries({ queryKey: qk.points })
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback' }, () => {
+        qc.invalidateQueries({ queryKey: qk.feedback })
       })
       .subscribe()
     return () => {

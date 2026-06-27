@@ -3,6 +3,7 @@ import type {
   ActionDef,
   ActionLog,
   DayStatus,
+  Feedback,
   Profile,
   Redemption,
   Reward,
@@ -162,4 +163,26 @@ export async function redeemReward(rewardId: UUID): Promise<Redemption> {
 
 export async function fulfillRedemption(redemptionId: UUID): Promise<Redemption> {
   return unwrap(await supabase.rpc('fulfill_redemption', { p_redemption_id: redemptionId }))
+}
+
+// ---------- Pomysły / komentarze ----------
+export async function fetchFeedback(): Promise<Feedback[]> {
+  return unwrap(
+    await supabase.from('feedback').select('*').order('created_at', { ascending: false }),
+  )
+}
+
+export async function createFeedback(authorId: UUID, body: string): Promise<Feedback> {
+  return unwrap(
+    await supabase.from('feedback').insert({ author_id: authorId, body }).select().single(),
+  )
+}
+
+export async function setFeedbackDone(id: UUID, done: boolean): Promise<Feedback> {
+  return unwrap(await supabase.from('feedback').update({ done }).eq('id', id).select().single())
+}
+
+export async function deleteFeedback(id: UUID): Promise<void> {
+  const { error } = await supabase.from('feedback').delete().eq('id', id)
+  if (error) throw new Error(error.message)
 }

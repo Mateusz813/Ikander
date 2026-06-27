@@ -23,6 +23,7 @@ export function Layout() {
     { to: '/', end: true, icon: '📅', label: 'Kalendarz', badge: 0 },
     { to: '/akcje', end: false, icon: '⚡', label: 'Akcje', badge: 0 },
     { to: '/nagrody', end: false, icon: '🎁', label: 'Nagrody', badge: todo },
+    { to: '/pomysly', end: false, icon: '💡', label: 'Pomysły', badge: 0 },
   ]
 
   function renderLinks(variant: 'top' | 'bottom') {

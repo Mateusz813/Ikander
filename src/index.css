@@ -937,6 +937,107 @@ h3 {
   color: #b91c1c;
 }
 
+/* ---------------- Pomysły (feedback) ---------------- */
+.feedback__intro {
+  margin: -0.4rem 0 1rem;
+}
+.feedback__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.4rem;
+}
+.feedback__textarea {
+  resize: vertical;
+  min-height: 72px;
+  font-family: inherit;
+}
+.feedback__form .btn {
+  align-self: flex-end;
+}
+.feedback__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+.feedback__item {
+  display: flex;
+  gap: 0.7rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.8rem;
+  box-shadow: var(--shadow-sm);
+}
+.feedback__item.is-done {
+  opacity: 0.6;
+}
+.feedback__item.is-done .feedback__text {
+  text-decoration: line-through;
+}
+.feedback__avatar {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-size: 1.1rem;
+}
+.feedback__content {
+  flex: 1;
+  min-width: 0;
+}
+.feedback__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  margin-bottom: 0.2rem;
+}
+.feedback__meta .muted {
+  font-size: 0.75rem;
+}
+.feedback__text {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.feedback__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.feedback__check {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  font-weight: 900;
+  color: var(--muted);
+}
+.feedback__check.is-checked {
+  background: var(--grad);
+  border-color: transparent;
+  color: #fff;
+}
+.feedback__del {
+  border: none;
+  background: transparent;
+  font-size: 1rem;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+}
+.feedback__del:hover {
+  background: var(--surface-2);
+}
+
 /* ---------------- Day detail: sekcje + podgląd partnera ---------------- */
 .day__section-title {
   display: flex;
@@ -991,8 +1092,8 @@ h3 {
     right: 0;
     z-index: 30;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.25rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.15rem;
     padding: 0.4rem 0.5rem calc(0.4rem + env(safe-area-inset-bottom));
     background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(14px);

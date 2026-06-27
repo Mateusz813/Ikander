@@ -5,6 +5,7 @@ import { Layout } from './components/Layout'
 import { CalendarPage } from './features/calendar/CalendarPage'
 import { ActionsPage } from './features/actions/ActionsPage'
 import { RewardsPage } from './features/rewards/RewardsPage'
+import { FeedbackPage } from './features/feedback/FeedbackPage'
 
 function Loader({ label = 'Wczytywanie…' }: { label?: string }) {
   return (
@@ -47,6 +48,7 @@ export default function App() {
         <Route index element={<CalendarPage />} />
         <Route path="akcje" element={<ActionsPage />} />
         <Route path="nagrody" element={<RewardsPage />} />
+        <Route path="pomysly" element={<FeedbackPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

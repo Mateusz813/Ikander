@@ -392,13 +392,43 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------
--- 7. REALTIME — zmiany jednej osoby odświeżają się na żywo u drugiej
+-- 7. POMYSŁY (komentarze: co dodać / poprawić) — wspólne dla obojga
+-- ---------------------------------------------------------------------
+create table if not exists public.feedback (
+  id         uuid primary key default gen_random_uuid(),
+  author_id  uuid not null references public.profiles(id) on delete cascade,
+  body       text not null,
+  done       boolean not null default false,
+  created_at timestamptz not null default now()
+);
+create index if not exists feedback_created_idx on public.feedback(created_at desc);
+
+revoke all on public.feedback from anon;
+grant select, insert, update, delete on public.feedback to authenticated;
+
+alter table public.feedback enable row level security;
+
+drop policy if exists feedback_select on public.feedback;
+create policy feedback_select on public.feedback
+  for select to authenticated using (true);
+drop policy if exists feedback_insert on public.feedback;
+create policy feedback_insert on public.feedback
+  for insert to authenticated with check (author_id = auth.uid());
+drop policy if exists feedback_update on public.feedback;
+create policy feedback_update on public.feedback
+  for update to authenticated using (true) with check (true);
+drop policy if exists feedback_delete on public.feedback;
+create policy feedback_delete on public.feedback
+  for delete to authenticated using (author_id = auth.uid());
+
+-- ---------------------------------------------------------------------
+-- 8. REALTIME — zmiany jednej osoby odświeżają się na żywo u drugiej
 -- ---------------------------------------------------------------------
 do $$
 declare
   t text;
 begin
-  foreach t in array array['actions', 'action_logs', 'rewards', 'reward_redemptions'] loop
+  foreach t in array array['actions', 'action_logs', 'rewards', 'reward_redemptions', 'feedback'] loop
     if not exists (
       select 1 from pg_publication_tables
       where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = t

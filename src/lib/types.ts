@@ -72,3 +72,11 @@ export interface DayStatus {
   done: number
   is_perfect: boolean
 }
+
+export interface Feedback {
+  id: UUID
+  author_id: UUID
+  body: string
+  done: boolean
+  created_at: string
+}
