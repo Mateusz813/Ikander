@@ -29,10 +29,11 @@ export function useActions(userId: UUID | undefined) {
   })
 }
 
-export function useLogsRange(start: string, end: string) {
+export function useLogsRange(start: string, end: string, enabled = true) {
   return useQuery({
     queryKey: qk.logsRange(start, end),
     queryFn: () => api.fetchLogsRange(start, end),
+    enabled,
   })
 }
 

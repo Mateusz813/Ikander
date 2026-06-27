@@ -27,7 +27,7 @@ export function DayDetailModal({ date, onClose }: Props) {
   const key = date ? dayKey(date) : ''
   const { data: myActions } = useActions(date ? me?.id : undefined)
   const { data: partnerActions } = useActions(date ? partner?.id : undefined)
-  const { data: logs } = useLogsRange(key || '0000-01-01', key || '0000-01-01')
+  const { data: logs } = useLogsRange(key || '0000-01-01', key || '0000-01-01', !!date)
   const upsert = useUpsertLog()
   const [savingId, setSavingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
