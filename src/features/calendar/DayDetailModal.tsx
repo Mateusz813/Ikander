@@ -129,6 +129,9 @@ export function DayDetailModal({ date, onClose }: Props) {
           </div>
         </div>
 
+        <h3 className="day__section-title">
+          <span className="day__section-emoji">🧍</span> Twoje akcje
+        </h3>
         {myApplicable.length === 0 ? (
           <p className="muted">Brak akcji tego dnia.</p>
         ) : (
@@ -223,6 +226,43 @@ export function DayDetailModal({ date, onClose }: Props) {
           >
             Perfekcyjny dzień! +1 bonus 🎉
           </motion.p>
+        )}
+
+        {partnerApplicable.length > 0 && (
+          <div className="day__partner">
+            <h3 className="day__section-title">
+              <span className="day__section-emoji">💞</span> Akcje: {partner?.display_name}
+            </h3>
+            <ul className="day__list">
+              {partnerApplicable.map((action) => {
+                const log = partnerLogs.find((l) => l.action_id === action.id)
+                const completed = !!log?.completed
+                const progress = log?.progress ?? 0
+                const target = action.target ?? 0
+                return (
+                  <li
+                    key={action.id}
+                    className={`action-row action-row--readonly ${completed ? 'is-done' : ''}`}
+                  >
+                    <div className="action-row__head">
+                      <span className="action-row__icon">{action.icon}</span>
+                      <span className="action-row__name">{action.name}</span>
+                      {action.type === 'check' ? (
+                        <span className={`checkbox checkbox--readonly ${completed ? 'is-checked' : ''}`}>
+                          {completed ? '✓' : ''}
+                        </span>
+                      ) : (
+                        <span className="action-row__count">
+                          {progress}
+                          {completed ? ' ✓' : ''} / {target} {action.unit}
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
         )}
 
         {error && <p className="banner banner--error">{error}</p>}

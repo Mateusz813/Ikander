@@ -19,6 +19,22 @@ export function Layout() {
   const todo =
     redemptions?.filter((r) => r.status === 'pending' && r.recipient_id === partner?.id).length ?? 0
 
+  const navItems = [
+    { to: '/', end: true, icon: '📅', label: 'Kalendarz', badge: 0 },
+    { to: '/akcje', end: false, icon: '⚡', label: 'Akcje', badge: 0 },
+    { to: '/nagrody', end: false, icon: '🎁', label: 'Nagrody', badge: todo },
+  ]
+
+  function renderLinks(variant: 'top' | 'bottom') {
+    return navItems.map((item) => (
+      <NavLink key={item.to} to={item.to} end={item.end} className={`navlink navlink--${variant}`}>
+        <span className="navlink__icon">{item.icon}</span>
+        <span className="navlink__label">{item.label}</span>
+        {item.badge > 0 && <span className="navlink__badge">{item.badge}</span>}
+      </NavLink>
+    ))
+  }
+
   return (
     <div className="app-shell">
       <header className="topbar">
@@ -27,21 +43,7 @@ export function Layout() {
           <span className="topbar__name">Ikander</span>
         </div>
 
-        <nav className="topbar__nav">
-          <NavLink to="/" end className="navlink">
-            <span className="navlink__icon">📅</span>
-            <span className="navlink__label">Kalendarz</span>
-          </NavLink>
-          <NavLink to="/akcje" className="navlink">
-            <span className="navlink__icon">⚡</span>
-            <span className="navlink__label">Akcje</span>
-          </NavLink>
-          <NavLink to="/nagrody" className="navlink">
-            <span className="navlink__icon">🎁</span>
-            <span className="navlink__label">Nagrody</span>
-            {todo > 0 && <span className="navlink__badge">{todo}</span>}
-          </NavLink>
-        </nav>
+        <nav className="topbar__nav">{renderLinks('top')}</nav>
 
         <div className="topbar__right">
           <div className="points-badge" title="Twoje punkty">
@@ -69,6 +71,8 @@ export function Layout() {
       <main className="content">
         <Outlet />
       </main>
+
+      <nav className="bottomnav">{renderLinks('bottom')}</nav>
     </div>
   )
 }
