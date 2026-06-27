@@ -18,6 +18,7 @@ export interface ActionDef {
   target: number | null
   unit: string | null
   quick_add: number[]
+  weekdays: number[] // ISO: 1=pon ... 7=nd
   is_default: boolean
   sort_order: number
   created_at: string

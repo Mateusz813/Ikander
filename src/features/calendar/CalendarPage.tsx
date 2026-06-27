@@ -10,6 +10,7 @@ import {
   dayKey,
   isSameMonth,
   isToday,
+  isoWeekday,
   localDay,
   monthGrid,
   monthTitle,
@@ -56,9 +57,14 @@ export function CalendarPage() {
   const monthKey = dayKey(month)
   const todayKey = dayKey(new Date())
 
-  function iconsFor(actions: ActionDef[] | undefined, userId: string | undefined, key: string) {
+  function iconsFor(
+    actions: ActionDef[] | undefined,
+    userId: string | undefined,
+    key: string,
+    iso: number,
+  ) {
     return (actions ?? [])
-      .filter((a) => localDay(a.created_at) <= key)
+      .filter((a) => localDay(a.created_at) <= key && a.weekdays.includes(iso))
       .map((a) => ({ icon: a.icon, done: logDone.get(`${userId}|${a.id}|${key}`) ?? false }))
   }
 
@@ -126,9 +132,10 @@ export function CalendarPage() {
           const inMonth = isSameMonth(day, month)
           const today = isToday(day)
           const isPast = key < todayKey
+          const iso = isoWeekday(day)
 
-          const myIcons = iconsFor(myActions, me?.id, key)
-          const partnerIcons = iconsFor(partnerActions, partner?.id, key)
+          const myIcons = iconsFor(myActions, me?.id, key, iso)
+          const partnerIcons = iconsFor(partnerActions, partner?.id, key, iso)
           const hasAny = myIcons.length > 0 || partnerIcons.length > 0
 
           const mePerfect = perfect.get(`${me?.id}|${key}`) ?? false

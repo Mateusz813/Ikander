@@ -30,6 +30,12 @@ export function localDay(iso: string): string {
   return dayKey(new Date(iso))
 }
 
+/** Dzień tygodnia w formacie ISO: 1=poniedziałek ... 7=niedziela. */
+export function isoWeekday(date: Date): number {
+  const d = date.getDay() // 0=nd ... 6=sob
+  return d === 0 ? 7 : d
+}
+
 /** Siatka kalendarza miesiąca — pełne tygodnie (pon–nd). */
 export function monthGrid(month: Date): Date[] {
   const start = startOfWeek(startOfMonth(month), WEEK_OPTS)

@@ -33,6 +33,7 @@ create table if not exists public.actions (
   target     numeric,                              -- cel dla typu 'quantity' (np. 2000)
   unit       text,                                 -- jednostka (np. 'ml')
   quick_add  jsonb not null default '[]'::jsonb,   -- przyciski szybkiego dodawania, np. [100,200,500]
+  weekdays   int[] not null default '{1,2,3,4,5,6,7}', -- dni tygodnia (ISO: 1=pon ... 7=nd)
   is_default boolean not null default false,       -- domyślna akcja (Woda) — nieusuwalna
   sort_order int not null default 0,
   created_at timestamptz not null default now()
@@ -90,22 +91,30 @@ select
   d.user_id,
   d.date,
   (select count(*) from public.actions a
-     where a.user_id = d.user_id and (a.created_at at time zone 'Europe/Warsaw')::date <= d.date) as applicable,
+     where a.user_id = d.user_id
+       and (a.created_at at time zone 'Europe/Warsaw')::date <= d.date
+       and extract(isodow from d.date)::int = any(a.weekdays)) as applicable,
   (select count(*) from public.action_logs l
      join public.actions a on a.id = l.action_id
      where l.user_id = d.user_id and l.date = d.date
-       and l.completed and (a.created_at at time zone 'Europe/Warsaw')::date <= l.date) as done,
+       and l.completed and (a.created_at at time zone 'Europe/Warsaw')::date <= l.date
+       and extract(isodow from l.date)::int = any(a.weekdays)) as done,
   (
     (select count(*) from public.actions a
-       where a.user_id = d.user_id and (a.created_at at time zone 'Europe/Warsaw')::date <= d.date) > 0
+       where a.user_id = d.user_id
+         and (a.created_at at time zone 'Europe/Warsaw')::date <= d.date
+         and extract(isodow from d.date)::int = any(a.weekdays)) > 0
     and
     (select count(*) from public.action_logs l
        join public.actions a on a.id = l.action_id
        where l.user_id = d.user_id and l.date = d.date
-         and l.completed and (a.created_at at time zone 'Europe/Warsaw')::date <= l.date)
+         and l.completed and (a.created_at at time zone 'Europe/Warsaw')::date <= l.date
+         and extract(isodow from l.date)::int = any(a.weekdays))
     >=
     (select count(*) from public.actions a
-       where a.user_id = d.user_id and (a.created_at at time zone 'Europe/Warsaw')::date <= d.date)
+       where a.user_id = d.user_id
+         and (a.created_at at time zone 'Europe/Warsaw')::date <= d.date
+         and extract(isodow from d.date)::int = any(a.weekdays))
   ) as is_perfect
 from (select distinct user_id, date from public.action_logs) d;
 
@@ -125,6 +134,7 @@ from (
       join public.actions a on a.id = l.action_id
       where l.user_id = p.id and l.completed
         and (a.created_at at time zone 'Europe/Warsaw')::date <= l.date
+        and extract(isodow from l.date)::int = any(a.weekdays)
     ), 0)
     +
     coalesce((

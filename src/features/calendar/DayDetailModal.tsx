@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Modal } from '../../components/Modal'
 import { useAuth } from '../../auth/AuthProvider'
 import { useActions, useLogsRange, useUpsertLog } from '../../lib/hooks'
-import { dayKey, formatLongDate, localDay } from '../../lib/dates'
+import { dayKey, formatLongDate, isoWeekday, localDay } from '../../lib/dates'
 import type { ActionDef, ActionLog } from '../../lib/types'
 
 interface Props {
@@ -11,8 +11,8 @@ interface Props {
   onClose: () => void
 }
 
-function applicableOn(actions: ActionDef[] | undefined, key: string): ActionDef[] {
-  return (actions ?? []).filter((a) => localDay(a.created_at) <= key)
+function applicableOn(actions: ActionDef[] | undefined, key: string, iso: number): ActionDef[] {
+  return (actions ?? []).filter((a) => localDay(a.created_at) <= key && a.weekdays.includes(iso))
 }
 
 function summarize(actions: ActionDef[], logs: ActionLog[]) {
@@ -32,10 +32,11 @@ export function DayDetailModal({ date, onClose }: Props) {
   const [savingId, setSavingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const myApplicable = useMemo(() => applicableOn(myActions, key), [myActions, key])
+  const iso = date ? isoWeekday(date) : 0
+  const myApplicable = useMemo(() => applicableOn(myActions, key, iso), [myActions, key, iso])
   const partnerApplicable = useMemo(
-    () => applicableOn(partnerActions, key),
-    [partnerActions, key],
+    () => applicableOn(partnerActions, key, iso),
+    [partnerActions, key, iso],
   )
 
   const myLogs = (logs ?? []).filter((l) => l.user_id === me?.id)

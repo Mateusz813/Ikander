@@ -9,6 +9,9 @@ import { ConfirmDialog } from '../../components/ConfirmDialog'
 import { EmojiPicker } from '../../components/EmojiPicker'
 import { ACTION_EMOJIS } from '../../lib/emojis'
 
+const ALL_DAYS = [1, 2, 3, 4, 5, 6, 7]
+const DAY_LABELS = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd'] // index 0 => ISO 1
+
 const empty: ActionInput = {
   name: '',
   icon: ACTION_EMOJIS[0],
@@ -16,6 +19,16 @@ const empty: ActionInput = {
   target: null,
   unit: null,
   quick_add: [],
+  weekdays: ALL_DAYS,
+}
+
+function daysSummary(weekdays: number[]): string {
+  if (weekdays.length >= 7) return 'Codziennie'
+  if (weekdays.length === 0) return 'Brak dni'
+  return [...weekdays]
+    .sort((a, b) => a - b)
+    .map((d) => DAY_LABELS[d - 1])
+    .join(', ')
 }
 
 export function ActionsPage() {
@@ -53,10 +66,9 @@ export function ActionsPage() {
                 {a.is_default && <span className="tag">domyślna</span>}
               </div>
               <div className="card__sub">
-                {a.type === 'quantity'
-                  ? `Cel: ${a.target} ${a.unit ?? ''}`
-                  : 'Odhaczenie'}
+                {a.type === 'quantity' ? `Cel: ${a.target} ${a.unit ?? ''}` : 'Odhaczenie'}
               </div>
+              <div className="card__sub">📅 {daysSummary(a.weekdays)}</div>
             </div>
             <div className="card__actions">
               <button className="iconbtn" onClick={() => setEditing(a)} title="Edytuj">
@@ -120,13 +132,24 @@ function ActionForm({
   const [quickAdd, setQuickAdd] = useState(
     action?.quick_add?.length ? action.quick_add.join(', ') : '100, 200, 500',
   )
+  const [weekdays, setWeekdays] = useState<number[]>(
+    action?.weekdays?.length ? [...action.weekdays] : ALL_DAYS,
+  )
 
   const isQuantity = type === 'quantity'
-  const valid = name.trim() && (!isQuantity || Number(target) > 0)
+  const everyDay = weekdays.length >= 7
+  const valid = name.trim() && (!isQuantity || Number(target) > 0) && weekdays.length > 0
+
+  function toggleDay(iso: number) {
+    setWeekdays((prev) =>
+      prev.includes(iso) ? prev.filter((d) => d !== iso) : [...prev, iso].sort((a, b) => a - b),
+    )
+  }
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!valid) return
+    const days = [...weekdays].sort((a, b) => a - b)
     const input: ActionInput = isQuantity
       ? {
           name: name.trim(),
@@ -138,8 +161,17 @@ function ActionForm({
             .split(',')
             .map((s) => Number(s.trim()))
             .filter((n) => Number.isFinite(n) && n > 0),
+          weekdays: days,
         }
-      : { name: name.trim(), icon, type: 'check', target: null, unit: null, quick_add: [] }
+      : {
+          name: name.trim(),
+          icon,
+          type: 'check',
+          target: null,
+          unit: null,
+          quick_add: [],
+          weekdays: days,
+        }
     void onSubmit(input)
   }
 
@@ -222,6 +254,44 @@ function ActionForm({
             />
           </label>
         )}
+
+        <div className="field">
+          <span className="field__label">W jakie dni?</span>
+          <div className="segmented">
+            <button
+              type="button"
+              className={`segmented__btn ${everyDay ? 'is-active' : ''}`}
+              onClick={() => setWeekdays(ALL_DAYS)}
+            >
+              Codziennie
+            </button>
+            <button
+              type="button"
+              className={`segmented__btn ${!everyDay ? 'is-active' : ''}`}
+              onClick={() => everyDay && setWeekdays([1, 2, 3, 4, 5])}
+            >
+              Wybrane dni
+            </button>
+          </div>
+          {!everyDay && (
+            <div className="weekdays">
+              {DAY_LABELS.map((label, i) => {
+                const iso = i + 1
+                return (
+                  <button
+                    key={iso}
+                    type="button"
+                    className={`weekday ${weekdays.includes(iso) ? 'is-active' : ''}`}
+                    onClick={() => toggleDay(iso)}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+          )}
+          {weekdays.length === 0 && <span className="field__hint">Wybierz przynajmniej jeden dzień.</span>}
+        </div>
 
         <div className="form__actions">
           <button type="button" className="btn btn--ghost" onClick={onClose}>

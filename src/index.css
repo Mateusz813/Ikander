@@ -735,6 +735,30 @@ h3 {
   cursor: not-allowed;
 }
 
+.weekdays {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+.weekday {
+  flex: 1;
+  min-width: 38px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 0.4rem 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted);
+  transition: all 0.12s ease;
+}
+.weekday.is-active {
+  background: var(--grad);
+  color: #fff;
+  border-color: transparent;
+}
+
 /* ---------------- Emoji picker ---------------- */
 .emoji-grid {
   display: grid;

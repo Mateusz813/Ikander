@@ -22,8 +22,17 @@ export async function fetchProfiles(): Promise<Profile[]> {
 }
 
 // ---------- Akcje ----------
+// Zabezpieczenie: gdy kolumna weekdays jeszcze nie istnieje (przed migracją)
+// albo jest pusta — traktujemy jako "codziennie".
+function normalizeAction(a: ActionDef): ActionDef {
+  return {
+    ...a,
+    weekdays: a.weekdays && a.weekdays.length > 0 ? a.weekdays : [1, 2, 3, 4, 5, 6, 7],
+  }
+}
+
 export async function fetchActions(userId: UUID): Promise<ActionDef[]> {
-  return unwrap(
+  const rows = unwrap<ActionDef[]>(
     await supabase
       .from('actions')
       .select('*')
@@ -31,6 +40,7 @@ export async function fetchActions(userId: UUID): Promise<ActionDef[]> {
       .order('sort_order', { ascending: true })
       .order('created_at', { ascending: true }),
   )
+  return rows.map(normalizeAction)
 }
 
 export type ActionInput = {
@@ -40,6 +50,7 @@ export type ActionInput = {
   target: number | null
   unit: string | null
   quick_add: number[]
+  weekdays: number[]
 }
 
 export async function createAction(userId: UUID, input: ActionInput): Promise<ActionDef> {
