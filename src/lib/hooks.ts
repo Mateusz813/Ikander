@@ -197,6 +197,13 @@ export function useSendKiss(senderId: UUID, recipientId: UUID) {
   return useMutation({ mutationFn: () => api.sendKiss(senderId, recipientId) })
 }
 
+export function useKissesRange(start: string, end: string) {
+  return useQuery({
+    queryKey: ['kisses', 'range', start, end],
+    queryFn: () => api.fetchKissesRange(start, end),
+  })
+}
+
 export function useMarkKissesSeen() {
   const qc = useQueryClient()
   return useMutation({

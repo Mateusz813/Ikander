@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { ACCOUNTS } from '../../auth/accounts'
-import { dayKey, isoWeekday, localDay, monthDays, monthTitle } from '../../lib/dates'
+import { useKissesRange } from '../../lib/hooks'
+import { addMonths, dayKey, isoWeekday, localDay, monthDays, monthTitle, startOfMonth } from '../../lib/dates'
 import type { ActionDef, Profile } from '../../lib/types'
 
 function colorFor(name: string | undefined): string {
@@ -47,6 +48,10 @@ export function MonthSummary({ month, me, partner, myActions, partnerActions, lo
   const days = useMemo(() => monthDays(month), [month])
   const todayKey = dayKey(new Date())
 
+  const kissStart = startOfMonth(month).toISOString()
+  const kissEnd = startOfMonth(addMonths(month, 1)).toISOString()
+  const { data: kisses } = useKissesRange(kissStart, kissEnd)
+
   // grupuj akcje po nazwie, żeby te same były obok siebie
   const rows = useMemo(() => {
     const map = new Map<string, { name: string; icon: string; mine?: ActionDef; theirs?: ActionDef }>()
@@ -69,6 +74,8 @@ export function MonthSummary({ month, me, partner, myActions, partnerActions, lo
 
   const myPerfect = days.filter((d) => perfect.get(`${me?.id}|${dayKey(d)}`)).length
   const partnerPerfect = days.filter((d) => perfect.get(`${partner?.id}|${dayKey(d)}`)).length
+  const myKisses = (kisses ?? []).filter((k) => k.sender_id === me?.id).length
+  const partnerKisses = (kisses ?? []).filter((k) => k.sender_id === partner?.id).length
 
   return (
     <div className="msum">
@@ -108,6 +115,16 @@ export function MonthSummary({ month, me, partner, myActions, partnerActions, lo
         </span>
         <span className="msum__cell">
           <strong>{partnerPerfect}</strong>
+        </span>
+      </div>
+
+      <div className="msum__row msum__row--total">
+        <span className="msum__action">💋 Wysłane buziaczki</span>
+        <span className="msum__cell">
+          <strong>{myKisses}</strong>
+        </span>
+        <span className="msum__cell">
+          <strong>{partnerKisses}</strong>
         </span>
       </div>
     </div>

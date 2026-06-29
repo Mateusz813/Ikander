@@ -218,6 +218,12 @@ export async function fetchUnseenKisses(recipientId: UUID): Promise<Kiss[]> {
   )
 }
 
+export async function fetchKissesRange(startIso: string, endIso: string): Promise<Kiss[]> {
+  return unwrap(
+    await supabase.from('kisses').select('*').gte('created_at', startIso).lt('created_at', endIso),
+  )
+}
+
 export async function markKissesSeen(ids: UUID[]): Promise<void> {
   if (ids.length === 0) return
   const { error } = await supabase
