@@ -81,3 +81,11 @@ export interface Feedback {
   done: boolean
   created_at: string
 }
+
+export interface Kiss {
+  id: UUID
+  sender_id: UUID
+  recipient_id: UUID
+  created_at: string
+  seen_at: string | null
+}

@@ -18,6 +18,7 @@ import {
   weekdayLabels,
 } from '../../lib/dates'
 import { DayDetailModal } from './DayDetailModal'
+import { MonthSummary } from './MonthSummary'
 
 function colorFor(name: string | undefined): string {
   return ACCOUNTS.find((a) => a.key === (name ?? '').toLowerCase())?.color ?? '#999'
@@ -192,6 +193,16 @@ export function CalendarPage() {
           )
         })}
       </motion.div>
+
+      <MonthSummary
+        month={month}
+        me={me}
+        partner={partner}
+        myActions={myActions}
+        partnerActions={partnerActions}
+        logDone={logDone}
+        perfect={perfect}
+      />
 
       <DayDetailModal date={selected} onClose={() => setSelected(null)} />
     </div>

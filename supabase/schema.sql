@@ -432,13 +432,39 @@ create policy feedback_delete on public.feedback
   for delete to authenticated using (author_id = auth.uid());
 
 -- ---------------------------------------------------------------------
+-- 7b. BUZIACZKI 💋
+-- ---------------------------------------------------------------------
+create table if not exists public.kisses (
+  id           uuid primary key default gen_random_uuid(),
+  sender_id    uuid not null references public.profiles(id) on delete cascade,
+  recipient_id uuid not null references public.profiles(id) on delete cascade,
+  created_at   timestamptz not null default now(),
+  seen_at      timestamptz
+);
+create index if not exists kisses_recipient_idx on public.kisses(recipient_id, seen_at);
+
+revoke all on public.kisses from anon;
+grant select, insert, update on public.kisses to authenticated;
+alter table public.kisses enable row level security;
+
+drop policy if exists kisses_select on public.kisses;
+create policy kisses_select on public.kisses
+  for select to authenticated using (recipient_id = auth.uid() or sender_id = auth.uid());
+drop policy if exists kisses_insert on public.kisses;
+create policy kisses_insert on public.kisses
+  for insert to authenticated with check (sender_id = auth.uid() and recipient_id <> auth.uid());
+drop policy if exists kisses_update on public.kisses;
+create policy kisses_update on public.kisses
+  for update to authenticated using (recipient_id = auth.uid()) with check (recipient_id = auth.uid());
+
+-- ---------------------------------------------------------------------
 -- 8. REALTIME — zmiany jednej osoby odświeżają się na żywo u drugiej
 -- ---------------------------------------------------------------------
 do $$
 declare
   t text;
 begin
-  foreach t in array array['actions', 'action_logs', 'rewards', 'reward_redemptions', 'feedback'] loop
+  foreach t in array array['actions', 'action_logs', 'rewards', 'reward_redemptions', 'feedback', 'kisses'] loop
     if not exists (
       select 1 from pg_publication_tables
       where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = t

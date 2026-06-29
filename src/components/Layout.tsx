@@ -1,8 +1,10 @@
-import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
-import { usePoints, useRealtime, useRedemptions } from '../lib/hooks'
+import { usePoints, useRealtime, useRedemptions, useSendKiss } from '../lib/hooks'
 import { ACCOUNTS } from '../auth/accounts'
+import { KissOverlay } from './KissOverlay'
 
 function emojiFor(name: string): string {
   return ACCOUNTS.find((a) => a.key === name.toLowerCase())?.emoji ?? '🙂'
@@ -13,6 +15,18 @@ export function Layout() {
   useRealtime()
   const { data: points } = usePoints()
   const { data: redemptions } = useRedemptions()
+  const sendKiss = useSendKiss(me?.id ?? '', partner?.id ?? '')
+  const [kissSent, setKissSent] = useState(false)
+
+  function handleKiss() {
+    if (!me || !partner || sendKiss.isPending) return
+    sendKiss.mutate(undefined, {
+      onSuccess: () => {
+        setKissSent(true)
+        setTimeout(() => setKissSent(false), 1500)
+      },
+    })
+  }
 
   const balance = points?.find((p) => p.user_id === me?.id)?.balance ?? 0
   // nagrody, które JA mam wykonać (partner je wykupił) i jeszcze nie wykonane
@@ -47,6 +61,31 @@ export function Layout() {
         <nav className="topbar__nav">{renderLinks('top')}</nav>
 
         <div className="topbar__right">
+          <div className="kiss-btn-wrap">
+            <motion.button
+              className="kiss-btn"
+              onClick={handleKiss}
+              title={`Wyślij buziaczka do ${partner?.display_name ?? ''}`}
+              whileTap={{ scale: 0.85 }}
+              whileHover={{ scale: 1.1 }}
+              disabled={sendKiss.isPending}
+            >
+              💋
+            </motion.button>
+            <AnimatePresence>
+              {kissSent && (
+                <motion.span
+                  className="kiss-fly"
+                  initial={{ opacity: 0, y: 0, scale: 0.6 }}
+                  animate={{ opacity: 1, y: -26, scale: 1.2 }}
+                  exit={{ opacity: 0, y: -40 }}
+                  transition={{ duration: 0.9 }}
+                >
+                  💋
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
           <div className="points-badge" title="Twoje punkty">
             <span className="points-badge__star">⭐</span>
             <motion.span
@@ -74,6 +113,8 @@ export function Layout() {
       </main>
 
       <nav className="bottomnav">{renderLinks('bottom')}</nav>
+
+      <KissOverlay />
     </div>
   )
 }

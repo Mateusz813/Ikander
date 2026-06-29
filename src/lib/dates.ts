@@ -43,6 +43,11 @@ export function monthGrid(month: Date): Date[] {
   return eachDayOfInterval({ start, end })
 }
 
+/** Wszystkie dni danego miesiąca (1..koniec). */
+export function monthDays(month: Date): Date[] {
+  return eachDayOfInterval({ start: startOfMonth(month), end: endOfMonth(month) })
+}
+
 export function monthTitle(month: Date): string {
   return format(month, 'LLLL yyyy', { locale: pl })
 }

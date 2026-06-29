@@ -4,6 +4,7 @@ import type {
   ActionLog,
   DayStatus,
   Feedback,
+  Kiss,
   Profile,
   Redemption,
   Reward,
@@ -195,5 +196,33 @@ export async function setFeedbackDone(id: UUID, done: boolean): Promise<Feedback
 
 export async function deleteFeedback(id: UUID): Promise<void> {
   const { error } = await supabase.from('feedback').delete().eq('id', id)
+  if (error) throw new Error(error.message)
+}
+
+// ---------- Buziaczki 💋 ----------
+export async function sendKiss(senderId: UUID, recipientId: UUID): Promise<void> {
+  const { error } = await supabase
+    .from('kisses')
+    .insert({ sender_id: senderId, recipient_id: recipientId })
+  if (error) throw new Error(error.message)
+}
+
+export async function fetchUnseenKisses(recipientId: UUID): Promise<Kiss[]> {
+  return unwrap(
+    await supabase
+      .from('kisses')
+      .select('*')
+      .eq('recipient_id', recipientId)
+      .is('seen_at', null)
+      .order('created_at', { ascending: true }),
+  )
+}
+
+export async function markKissesSeen(ids: UUID[]): Promise<void> {
+  if (ids.length === 0) return
+  const { error } = await supabase
+    .from('kisses')
+    .update({ seen_at: new Date().toISOString() })
+    .in('id', ids)
   if (error) throw new Error(error.message)
 }

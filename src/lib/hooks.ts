@@ -15,6 +15,7 @@ export const qk = {
   rewards: ['rewards'] as const,
   redemptions: ['redemptions'] as const,
   feedback: ['feedback'] as const,
+  kisses: ['kisses'] as const,
 }
 
 // ---------- Zapytania ----------
@@ -183,6 +184,27 @@ export function useDeleteFeedback() {
   })
 }
 
+// ---------- Buziaczki ----------
+export function useUnseenKisses(recipientId: UUID | undefined) {
+  return useQuery({
+    queryKey: qk.kisses,
+    queryFn: () => api.fetchUnseenKisses(recipientId as UUID),
+    enabled: !!recipientId,
+  })
+}
+
+export function useSendKiss(senderId: UUID, recipientId: UUID) {
+  return useMutation({ mutationFn: () => api.sendKiss(senderId, recipientId) })
+}
+
+export function useMarkKissesSeen() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (ids: UUID[]) => api.markKissesSeen(ids),
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.kisses }),
+  })
+}
+
 // ---------- Realtime ----------
 // Zmiany w bazie (też te zrobione przez partnera na innym urządzeniu)
 // odświeżają odpowiednie zapytania na żywo.
@@ -210,6 +232,9 @@ export function useRealtime() {
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'feedback' }, () => {
         qc.invalidateQueries({ queryKey: qk.feedback })
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'kisses' }, () => {
+        qc.invalidateQueries({ queryKey: qk.kisses })
       })
       .subscribe()
     return () => {
