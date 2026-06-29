@@ -8,6 +8,12 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: false, // rejestrujemy sami w main.tsx (z auto-sprawdzaniem)
+      workbox: {
+        clientsClaim: true,
+        skipWaiting: true,
+        cleanupOutdatedCaches: true,
+      },
       includeAssets: ['apple-touch-icon.png', 'favicon-64.png'],
       manifest: {
         name: 'Ikander',
