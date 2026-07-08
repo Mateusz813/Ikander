@@ -4,7 +4,12 @@ import { Modal } from '../../components/Modal'
 import { useAuth } from '../../auth/AuthProvider'
 import { useActions, useLogsRange, useUpsertLog } from '../../lib/hooks'
 import { dayKey, formatLongDate, isoWeekday, localDay } from '../../lib/dates'
+import { ACCOUNTS } from '../../auth/accounts'
 import type { ActionDef, ActionLog } from '../../lib/types'
+
+function emojiFor(name: string | undefined): string {
+  return ACCOUNTS.find((a) => a.key === (name ?? '').toLowerCase())?.emoji ?? '🙂'
+}
 
 interface Props {
   date: Date | null
@@ -131,7 +136,7 @@ export function DayDetailModal({ date, onClose }: Props) {
         </div>
 
         <h3 className="day__section-title">
-          <span className="day__section-emoji">🧍</span> Twoje akcje
+          <span className="day__section-emoji">{emojiFor(me?.display_name)}</span> Twoje akcje
         </h3>
         {myApplicable.length === 0 ? (
           <p className="muted">Brak akcji tego dnia.</p>
@@ -232,7 +237,7 @@ export function DayDetailModal({ date, onClose }: Props) {
         {partnerApplicable.length > 0 && (
           <div className="day__partner">
             <h3 className="day__section-title">
-              <span className="day__section-emoji">💞</span> Akcje: {partner?.display_name}
+              <span className="day__section-emoji">{emojiFor(partner?.display_name)}</span> Akcje: {partner?.display_name}
             </h3>
             <ul className="day__list">
               {partnerApplicable.map((action) => {
