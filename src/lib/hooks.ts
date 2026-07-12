@@ -160,6 +160,22 @@ export function useFulfillRedemption() {
   })
 }
 
+export function useProposePrice() {
+  const inv = useInvalidator()
+  return useMutation({
+    mutationFn: ({ id, price }: { id: UUID; price: number }) => api.proposePrice(id, price),
+    onSuccess: inv.rewards,
+  })
+}
+
+export function useRespondPrice() {
+  const inv = useInvalidator()
+  return useMutation({
+    mutationFn: ({ id, accept }: { id: UUID; accept: boolean }) => api.respondPrice(id, accept),
+    onSuccess: inv.rewards,
+  })
+}
+
 export function useCreateFeedback(authorId: UUID) {
   const inv = useInvalidator()
   return useMutation({

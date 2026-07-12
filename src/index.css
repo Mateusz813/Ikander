@@ -991,6 +991,43 @@ h3 {
   border-radius: 999px;
 }
 
+/* ---------------- Negocjacja ceny ---------------- */
+.card--nego {
+  border-color: var(--pink);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--pink) 45%, transparent), var(--shadow);
+  animation: negoPulse 1.8s ease-in-out infinite;
+}
+@keyframes negoPulse {
+  0%, 100% { box-shadow: 0 0 0 2px color-mix(in srgb, var(--pink) 40%, transparent), var(--shadow-sm); }
+  50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--pink) 30%, transparent), var(--shadow); }
+}
+.nego {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  background: var(--grad-soft);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.6rem;
+  font-size: 0.82rem;
+}
+.nego__label strong {
+  color: var(--pink);
+}
+.nego__turn {
+  font-weight: 800;
+  color: var(--pink);
+}
+.nego__wait {
+  color: var(--muted);
+  font-weight: 600;
+}
+.nego__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
 /* ---------------- Rewards extras ---------------- */
 .points-pill {
   background: var(--surface-2);

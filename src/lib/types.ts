@@ -43,6 +43,9 @@ export interface Reward {
   icon: string
   cost: number
   is_default: boolean
+  consumed_at?: string | null // wykupiona (jednorazowa)
+  nego_price?: number | null // aktualna propozycja ceny
+  nego_by?: UUID | null // kto proponuje
   created_at: string
 }
 

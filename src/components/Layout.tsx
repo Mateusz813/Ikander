@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthProvider'
-import { usePoints, useRealtime, useRedemptions, useSendKiss } from '../lib/hooks'
+import { usePoints, useRealtime, useRedemptions, useRewards, useSendKiss } from '../lib/hooks'
 import { ACCOUNTS } from '../auth/accounts'
 import { KissOverlay } from './KissOverlay'
 
@@ -15,6 +15,7 @@ export function Layout() {
   useRealtime()
   const { data: points } = usePoints()
   const { data: redemptions } = useRedemptions()
+  const { data: rewards } = useRewards()
   const sendKiss = useSendKiss(me?.id ?? '', partner?.id ?? '')
   const [kissSent, setKissSent] = useState(false)
 
@@ -32,11 +33,15 @@ export function Layout() {
   // nagrody, które JA mam wykonać (partner je wykupił) i jeszcze nie wykonane
   const todo =
     redemptions?.filter((r) => r.status === 'pending' && r.recipient_id === partner?.id).length ?? 0
+  // negocjacje czekające na moją odpowiedź
+  const negoTurn =
+    rewards?.filter((r) => r.nego_price != null && r.nego_by != null && r.nego_by !== me?.id)
+      .length ?? 0
 
   const navItems = [
     { to: '/', end: true, icon: '📅', label: 'Kalendarz', badge: 0 },
     { to: '/akcje', end: false, icon: '⚡', label: 'Akcje', badge: 0 },
-    { to: '/nagrody', end: false, icon: '🎁', label: 'Nagrody', badge: todo },
+    { to: '/nagrody', end: false, icon: '🎁', label: 'Nagrody', badge: todo + negoTurn },
     { to: '/pomysly', end: false, icon: '💡', label: 'Pomysły', badge: 0 },
   ]
 

@@ -173,6 +173,15 @@ export async function redeemReward(rewardId: UUID): Promise<Redemption> {
   return unwrap(await supabase.rpc('redeem_reward', { p_reward_id: rewardId }))
 }
 
+// negocjacja ceny (jak Vinted)
+export async function proposePrice(rewardId: UUID, price: number): Promise<Reward> {
+  return unwrap(await supabase.rpc('propose_price', { p_reward_id: rewardId, p_price: price }))
+}
+
+export async function respondPrice(rewardId: UUID, accept: boolean): Promise<Reward> {
+  return unwrap(await supabase.rpc('respond_price', { p_reward_id: rewardId, p_accept: accept }))
+}
+
 export async function fulfillRedemption(redemptionId: UUID): Promise<Redemption> {
   return unwrap(await supabase.rpc('fulfill_redemption', { p_redemption_id: redemptionId }))
 }

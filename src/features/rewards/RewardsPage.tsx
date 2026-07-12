@@ -6,8 +6,10 @@ import {
   useDeleteReward,
   useFulfillRedemption,
   usePoints,
+  useProposePrice,
   useRedeemReward,
   useRedemptions,
+  useRespondPrice,
   useRewards,
   useUpdateReward,
 } from '../../lib/hooks'
@@ -30,12 +32,15 @@ export function RewardsPage() {
   const redeem = useRedeemReward()
   const fulfill = useFulfillRedemption()
   const removeReward = useDeleteReward()
+  const proposePrice = useProposePrice()
+  const respondPrice = useRespondPrice()
 
   const [tab, setTab] = useState<Tab>('mine')
   const [editing, setEditing] = useState<Reward | 'new' | null>(null)
   const [toDelete, setToDelete] = useState<Reward | null>(null)
   const [confirmRedeem, setConfirmRedeem] = useState<Reward | null>(null)
   const [confirmFulfill, setConfirmFulfill] = useState<Redemption | null>(null)
+  const [priceFor, setPriceFor] = useState<Reward | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const balance = points?.find((p) => p.user_id === me?.id)?.balance ?? 0
@@ -46,8 +51,11 @@ export function RewardsPage() {
     return m
   }, [rewards])
 
-  const myCatalog = (rewards ?? []).filter((r) => r.recipient_id === me?.id)
-  const partnerCatalog = (rewards ?? []).filter((r) => r.recipient_id === partner?.id)
+  // jednorazowe: wykupione (consumed) znikają z katalogów, zostają w historii
+  const myCatalog = (rewards ?? []).filter((r) => r.recipient_id === me?.id && !r.consumed_at)
+  const partnerCatalog = (rewards ?? []).filter(
+    (r) => r.recipient_id === partner?.id && !r.consumed_at,
+  )
 
   const pending = (redemptions ?? []).filter((r) => r.status === 'pending')
   const history = (redemptions ?? []).filter((r) => r.status === 'fulfilled')
@@ -56,6 +64,117 @@ export function RewardsPage() {
     if (userId === me?.id) return me?.display_name ?? ''
     if (userId === partner?.id) return partner?.display_name ?? ''
     return '—'
+  }
+
+  function nego(r: Reward) {
+    const active = r.nego_price != null && r.nego_by != null
+    return { active, iProposed: active && r.nego_by === me?.id, myTurn: active && r.nego_by !== me?.id }
+  }
+
+  async function respond(r: Reward, accept: boolean) {
+    setError(null)
+    try {
+      await respondPrice.mutateAsync({ id: r.id, accept })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Nie udało się odpowiedzieć')
+    }
+  }
+
+  function NegoBanner({ r }: { r: Reward }) {
+    const n = nego(r)
+    if (!n.active) return null
+    return (
+      <div className="nego">
+        <span className="nego__label">
+          💬 {nameOf(r.nego_by)} proponuje <strong>{r.nego_price} ⭐</strong>
+        </span>
+        {n.iProposed ? (
+          <span className="nego__wait">⏳ Czekasz na odpowiedź</span>
+        ) : (
+          <span className="nego__turn">🔔 Twój ruch</span>
+        )}
+      </div>
+    )
+  }
+
+  function negoActions(r: Reward) {
+    return (
+      <div className="nego__actions">
+        <button
+          className="btn btn--primary btn--sm"
+          disabled={respondPrice.isPending}
+          onClick={() => respond(r, true)}
+        >
+          Akceptuj {r.nego_price} ⭐
+        </button>
+        <button
+          className="btn btn--ghost btn--sm"
+          disabled={respondPrice.isPending}
+          onClick={() => respond(r, false)}
+        >
+          Odrzuć
+        </button>
+        <button className="btn btn--ghost btn--sm" onClick={() => setPriceFor(r)}>
+          Kontroferta
+        </button>
+      </div>
+    )
+  }
+
+  function mineFooter(r: Reward) {
+    const n = nego(r)
+    if (n.myTurn) return negoActions(r)
+    if (n.iProposed) {
+      return (
+        <button className="btn btn--ghost btn--sm" onClick={() => setPriceFor(r)}>
+          Zmień ofertę
+        </button>
+      )
+    }
+    return (
+      <div className="card__actions">
+        <button
+          className="btn btn--primary btn--sm"
+          disabled={balance < r.cost || redeem.isPending}
+          onClick={() => {
+            setError(null)
+            setConfirmRedeem(r)
+          }}
+        >
+          Wykup za {r.cost} ⭐
+        </button>
+        {!r.is_default && (
+          <button className="btn btn--ghost btn--sm" onClick={() => setPriceFor(r)}>
+            Negocjuj
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  function partnerFooter(r: Reward) {
+    const n = nego(r)
+    if (n.myTurn) return negoActions(r)
+    if (n.iProposed) {
+      return (
+        <button className="btn btn--ghost btn--sm" onClick={() => setPriceFor(r)}>
+          Zmień ofertę
+        </button>
+      )
+    }
+    return (
+      <div className="card__actions">
+        <span className="card__cost">{r.cost} ⭐</span>
+        <button className="iconbtn" onClick={() => setEditing(r)} title="Edytuj">
+          ✏️
+        </button>
+        {!r.is_default && (
+          <button className="iconbtn" onClick={() => setToDelete(r)} title="Usuń">
+            🗑️
+          </button>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -136,18 +255,9 @@ export function RewardsPage() {
                 <RewardCard
                   key={r.id}
                   reward={r}
-                  footer={
-                    <button
-                      className="btn btn--primary btn--sm"
-                      disabled={balance < r.cost || redeem.isPending}
-                      onClick={() => {
-                        setError(null)
-                        setConfirmRedeem(r)
-                      }}
-                    >
-                      Wykup za {r.cost} ⭐
-                    </button>
-                  }
+                  highlight={nego(r).active}
+                  banner={<NegoBanner r={r} />}
+                  footer={mineFooter(r)}
                 />
               ))}
             </div>
@@ -166,19 +276,9 @@ export function RewardsPage() {
                   <RewardCard
                     key={r.id}
                     reward={r}
-                    footer={
-                      <div className="card__actions">
-                        <span className="card__cost">{r.cost} ⭐</span>
-                        <button className="iconbtn" onClick={() => setEditing(r)} title="Edytuj">
-                          ✏️
-                        </button>
-                        {!r.is_default && (
-                          <button className="iconbtn" onClick={() => setToDelete(r)} title="Usuń">
-                            🗑️
-                          </button>
-                        )}
-                      </div>
-                    }
+                    highlight={nego(r).active}
+                    banner={<NegoBanner r={r} />}
+                    footer={partnerFooter(r)}
                   />
                 ))}
               </div>
@@ -220,6 +320,25 @@ export function RewardsPage() {
         />
       )}
 
+      {/* Popup negocjacji ceny */}
+      {priceFor && (
+        <PriceModal
+          reward={priceFor}
+          busy={proposePrice.isPending}
+          onClose={() => setPriceFor(null)}
+          onSubmit={async (price) => {
+            setError(null)
+            try {
+              await proposePrice.mutateAsync({ id: priceFor.id, price })
+              setPriceFor(null)
+            } catch (e) {
+              setError(e instanceof Error ? e.message : 'Nie udało się zaproponować')
+              setPriceFor(null)
+            }
+          }}
+        />
+      )}
+
       {/* Usuwanie nagrody */}
       <ConfirmDialog
         open={!!toDelete}
@@ -238,7 +357,9 @@ export function RewardsPage() {
       <ConfirmDialog
         open={!!confirmRedeem}
         title="Wykupić nagrodę?"
-        message={`Wykupić „${confirmRedeem?.name}" za ${confirmRedeem?.cost} ⭐? Punkty zostaną odjęte.`}
+        message={`Wykupić „${confirmRedeem?.name}" za ${confirmRedeem?.cost} ⭐? Punkty zostaną odjęte${
+          confirmRedeem?.is_default ? '' : ', a nagroda jest jednorazowa'
+        }.`}
         confirmLabel="Wykup"
         busy={redeem.isPending}
         onCancel={() => setConfirmRedeem(null)}
@@ -276,9 +397,24 @@ export function RewardsPage() {
   )
 }
 
-function RewardCard({ reward, footer }: { reward: Reward; footer: React.ReactNode }) {
+function RewardCard({
+  reward,
+  highlight,
+  banner,
+  footer,
+}: {
+  reward: Reward
+  highlight?: boolean
+  banner?: React.ReactNode
+  footer: React.ReactNode
+}) {
   return (
-    <motion.div className="card" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+    <motion.div
+      className={`card ${highlight ? 'card--nego' : ''}`}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      layout
+    >
       <div className="card__icon card__icon--lg">{reward.icon}</div>
       <div className="card__body">
         <div className="card__title">
@@ -286,9 +422,66 @@ function RewardCard({ reward, footer }: { reward: Reward; footer: React.ReactNod
           {reward.is_default && <span className="tag">domyślna</span>}
         </div>
         <div className="card__sub">{reward.cost} punktów</div>
+        {banner}
       </div>
       <div className="card__footer">{footer}</div>
     </motion.div>
+  )
+}
+
+function PriceModal({
+  reward,
+  busy,
+  onClose,
+  onSubmit,
+}: {
+  reward: Reward
+  busy: boolean
+  onClose: () => void
+  onSubmit: (price: number) => void | Promise<void>
+}) {
+  const [price, setPrice] = useState(String(reward.nego_price ?? reward.cost))
+  const valid = Number(price) > 0
+
+  function submit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!valid) return
+    void onSubmit(Number(price))
+  }
+
+  return (
+    <Modal open onClose={onClose} title={`Negocjuj: ${reward.name}`} maxWidth={380}>
+      <form className="form" onSubmit={submit}>
+        <p className="muted" style={{ margin: 0 }}>
+          Aktualna cena: <strong>{reward.cost} ⭐</strong>
+          {reward.nego_price != null && (
+            <>
+              {' '}
+              · ostatnia propozycja: <strong>{reward.nego_price} ⭐</strong>
+            </>
+          )}
+        </p>
+        <label className="field">
+          <span className="field__label">Twoja propozycja (punkty)</span>
+          <input
+            className="input"
+            type="number"
+            min={1}
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            autoFocus
+          />
+        </label>
+        <div className="form__actions">
+          <button type="button" className="btn btn--ghost" onClick={onClose}>
+            Anuluj
+          </button>
+          <button type="submit" className="btn btn--primary" disabled={!valid || busy}>
+            {busy ? 'Wysyłanie…' : 'Wyślij propozycję'}
+          </button>
+        </div>
+      </form>
+    </Modal>
   )
 }
 
