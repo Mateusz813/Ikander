@@ -126,13 +126,15 @@ export function RewardsPage() {
     if (n.myTurn) return negoActions(r)
     if (n.iProposed) {
       return (
-        <button className="btn btn--ghost btn--sm" onClick={() => setPriceFor(r)}>
-          Zmień ofertę
-        </button>
+        <div className="reward-actions">
+          <button className="btn btn--ghost btn--sm" onClick={() => setPriceFor(r)}>
+            Zmień ofertę
+          </button>
+        </div>
       )
     }
     return (
-      <div className="card__actions">
+      <div className="reward-actions">
         <button
           className="btn btn--primary btn--sm"
           disabled={balance < r.cost || redeem.isPending}
@@ -157,9 +159,11 @@ export function RewardsPage() {
     if (n.myTurn) return negoActions(r)
     if (n.iProposed) {
       return (
-        <button className="btn btn--ghost btn--sm" onClick={() => setPriceFor(r)}>
-          Zmień ofertę
-        </button>
+        <div className="reward-actions">
+          <button className="btn btn--ghost btn--sm" onClick={() => setPriceFor(r)}>
+            Zmień ofertę
+          </button>
+        </div>
       )
     }
     return (
@@ -249,7 +253,7 @@ export function RewardsPage() {
           transition={{ duration: 0.18 }}
         >
           {tab === 'mine' && (
-            <div className="cards">
+            <div className="cards cards--stack">
               {myCatalog.length === 0 && <p className="muted">Brak nagród. Poproś partnera 😉</p>}
               {myCatalog.map((r) => (
                 <RewardCard
@@ -271,7 +275,7 @@ export function RewardsPage() {
                   + Nowa nagroda
                 </button>
               </div>
-              <div className="cards">
+              <div className="cards cards--stack">
                 {partnerCatalog.map((r) => (
                   <RewardCard
                     key={r.id}
@@ -410,7 +414,7 @@ function RewardCard({
 }) {
   return (
     <motion.div
-      className={`card ${highlight ? 'card--nego' : ''}`}
+      className={`card card--reward ${highlight ? 'card--nego' : ''}`}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       layout

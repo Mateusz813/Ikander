@@ -1024,8 +1024,24 @@ h3 {
 }
 .nego__actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 0.4rem;
+  width: 100%;
+}
+.nego__actions .btn {
+  width: 100%;
+}
+.reward-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+}
+.reward-actions .btn {
+  width: 100%;
+}
+.card--reward .card__footer {
+  display: block;
 }
 
 /* ---------------- Rewards extras ---------------- */
@@ -1385,6 +1401,13 @@ h3 {
   }
   .cards {
     grid-template-columns: 1fr 1fr;
+  }
+  /* nagrody: jedna kolumna wyśrodkowana na telefonie */
+  .cards.cards--stack {
+    grid-template-columns: 1fr;
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
   }
   .tabs {
     width: 100%;
