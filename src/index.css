@@ -1040,8 +1040,22 @@ h3 {
 .reward-actions .btn {
   width: 100%;
 }
+.card--reward {
+  align-items: center;
+  text-align: center;
+}
+.card--reward .card__body {
+  width: 100%;
+}
+.card--reward .card__title {
+  justify-content: center;
+}
 .card--reward .card__footer {
   display: block;
+  width: 100%;
+}
+.card--reward .card__actions {
+  justify-content: center;
 }
 
 /* ---------------- Rewards extras ---------------- */
